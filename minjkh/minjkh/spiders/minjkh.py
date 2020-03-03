@@ -7,6 +7,8 @@ import scrapy
 from scrapy.loader import ItemLoader
 from minjkh.items import MinjkhItem
 
+# scrapy crawl minjkh
+
 
 class Minjkh(scrapy.Spider):
     def __init__(self, selectors_dict={}, **kwargs):
@@ -34,7 +36,7 @@ class Minjkh(scrapy.Spider):
         self.selectors.setdefault(
             'company_phone', 'td:nth-child(6)::text')
         self.selectors.setdefault(
-            'next_company_page_link', '.pagination  a[rel=next]::attr(href)')
+            'next_company_page_link', '.pagination  li.active + li>a::attr(href)')
         self.selectors.setdefault(
             'company_description', '.seo-text::text')
         self.selectors.setdefault(
@@ -46,15 +48,14 @@ class Minjkh(scrapy.Spider):
         loader.add_css('region_name', self.selectors.get('text'))
         loader.add_css('region_fond', self.selectors.get('region_fond'))
 
-        rows = response.css(self.selectors.get('row')).getall()
+        rows = response.css(self.selectors.get('row'))
         for row in rows:
             region_name = row.css(self.selectors.get('text')).get()
             region_fond = row.css(self.selectors.get('region_fond')).get()
             region_link = row.css(self.selectors.get('link')).get()
-            if (region_name == "Еврейская Автономная область"):
-                yield scrapy.Request(response.urljoin(region_link),
-                                     callback=self.parse_region_pages,
-                                     meta={'region': {'name': region_name, 'found': region_fond}})
+            yield scrapy.Request(response.urljoin(region_link),
+                                 callback=self.parse_region_pages,
+                                 meta={'region': {'name': region_name, 'found': region_fond}})
 
     def parse_region_pages(self, response):
         rows = response.css(self.selectors.get('row'))
@@ -80,13 +81,18 @@ class Minjkh(scrapy.Spider):
 
         next_page = response.css(self.selectors.get(
             'next_company_page_link')).get()
-
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        print(next_page)
         if (next_page):
             yield scrapy.Request(
                 url=response.urljoin(next_page),
                 callback=self.parse_region_pages,
                 meta={**response.meta}
             )
+        else:
+            print(
+                "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+            print(next_page)
 
     def parse_company(self, response):
         loader = response.meta.get('loader')

@@ -1,0 +1,8 @@
+version: "2"
+services:
+  splash:
+    container_name: splash
+    image: scrapinghub/splash
+    restart: always
+    ports:
+      - "8050:8050"
